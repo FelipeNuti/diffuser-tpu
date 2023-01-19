@@ -86,6 +86,7 @@ trainer_config = utils.Config(
     results_folder=args.savepath,
     bucket=args.bucket,
     n_reference=args.n_reference,
+    device=args.device,
 )
 
 #-----------------------------------------------------------------------------#
@@ -106,7 +107,7 @@ trainer = trainer_config(diffusion, dataset, renderer)
 utils.report_parameters(model)
 
 print('Testing forward...', end=' ', flush=True)
-batch = utils.batchify(dataset[0])
+batch = utils.batchify(dataset[0], device = args.device)
 loss, _ = diffusion.loss(*batch)
 loss.backward()
 print('✓')

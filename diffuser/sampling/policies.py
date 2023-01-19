@@ -12,13 +12,14 @@ Trajectories = namedtuple('Trajectories', 'actions observations values')
 
 class GuidedPolicy:
 
-    def __init__(self, guide, diffusion_model, normalizer, preprocess_fns, **sample_kwargs):
+    def __init__(self, guide, diffusion_model, normalizer, preprocess_fns, device = "cuda:0", **sample_kwargs):
         self.guide = guide
         self.diffusion_model = diffusion_model
         self.normalizer = normalizer
         self.action_dim = diffusion_model.action_dim
         self.preprocess_fn = get_policy_preprocess_fn(preprocess_fns)
         self.sample_kwargs = sample_kwargs
+        self.device = device
 
     def __call__(self, conditions, batch_size=1, verbose=True):
         conditions = {k: self.preprocess_fn(v) for k, v in conditions.items()}
@@ -52,7 +53,7 @@ class GuidedPolicy:
             conditions,
             'observations',
         )
-        conditions = utils.to_torch(conditions, dtype=torch.float32, device='cuda:0')
+        conditions = utils.to_torch(conditions, dtype=torch.float32, device=self.device)
         conditions = utils.apply_dict(
             einops.repeat,
             conditions,

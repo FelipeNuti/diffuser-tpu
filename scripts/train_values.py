@@ -100,7 +100,7 @@ trainer = trainer_config(diffusion, dataset, renderer)
 #-----------------------------------------------------------------------------#
 
 print('Testing forward...', end=' ', flush=True)
-batch = utils.batchify(dataset[0])
+batch = utils.batchify(dataset[0], device = args.device)
 
 loss, _ = diffusion.loss(*batch)
 loss.backward()

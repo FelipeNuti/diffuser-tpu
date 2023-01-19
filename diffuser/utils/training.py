@@ -51,6 +51,7 @@ class Trainer(object):
         save_parallel=False,
         results_folder='./results',
         n_reference=8,
+        device = "cuda:0",
         bucket=None,
     ):
         super().__init__()
@@ -81,6 +82,7 @@ class Trainer(object):
 
         self.logdir = results_folder
         self.bucket = bucket
+        self.device = device
         self.n_reference = n_reference
 
         self.reset_parameters()
@@ -88,6 +90,10 @@ class Trainer(object):
 
     def reset_parameters(self):
         self.ema_model.load_state_dict(self.model.state_dict())
+
+    def to(self, device, *args, **kwargs):
+        self.device = device
+        return self
 
     def step_ema(self):
         if self.step < self.step_start_ema:
@@ -105,7 +111,7 @@ class Trainer(object):
         for step in range(n_train_steps):
             for i in range(self.gradient_accumulate_every):
                 batch = next(self.dataloader)
-                batch = batch_to_device(batch)
+                batch = batch_to_device(batch, device = self.device)
 
                 loss, infos = self.model.loss(*batch)
                 loss = loss / self.gradient_accumulate_every
@@ -195,7 +201,7 @@ class Trainer(object):
 
             ## get a single datapoint
             batch = self.dataloader_vis.__next__()
-            conditions = to_device(batch.conditions, 'cuda:0')
+            conditions = to_device(batch.conditions, self.device)
 
             ## repeat each item in conditions `n_samples` times
             conditions = apply_dict(
